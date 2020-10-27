@@ -1,0 +1,15 @@
+%Сколько раз элемент встречается в листе
+n_of_incl([],_,Num):-
+    Num = 0,!. % Вот тут спорный момент, мб нужна 1
+n_of_incl(_,[],Num):-
+    Num = 0,!.
+n_of_incl(Elem,[H|T],Num):-
+    Elem = H, n_of_incl(Elem,T,NumNew), Num is NumNew + 1,!;
+    not(Elem = H), n_of_incl(Elem,T,NumNew), Num is NumNew.
+
+% С этим предикатом проблемы, ага
+
+uniq([],_):-!.
+uniq([XH|XT],Y):-
+    n_of_incl(XH,Y,1),
+    uniq(XT,Y).
