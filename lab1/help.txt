@@ -3,3 +3,9 @@ consult('C:\\Study\\Introduction-to-AI\\lab1\\1.pl').
 usp(plosk_chist, 10, 72, CodeZazh, CodeKul, CodeUst, CodeProkl, NProkl).
 
 frequency([a,b,c,d,b,e,e], c, Freq).
+
+consult('C:\\Study\\Introduction-to-AI\\lab2\\9.pl').
+
+possible_move([3, 3], Move).
+
+diag_passed_cells([3, 3], [6, 6], X).
