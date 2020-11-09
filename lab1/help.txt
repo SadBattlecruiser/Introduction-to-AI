@@ -1,0 +1,5 @@
+consult('C:\\Study\\Introduction-to-AI\\lab1\\1.pl').
+
+usp(plosk_chist, 10, 72, CodeZazh, CodeKul, CodeUst, CodeProkl, NProkl).
+
+frequency([a,b,c,d,b,e,e], c, Freq).
