@@ -64,6 +64,16 @@ pos([8, 6]).
 pos([8, 7]).
 pos([8, 8]).
 
+% Пары буква-цифра для последующей замены
+pair(a, 1).
+pair(b, 2).
+pair(c, 3).
+pair(d, 4).
+pair(e, 5).
+pair(f, 6).
+pair(g, 7).
+pair(h, 8).
+
 % Клетка левее
 left_pos([CurrH|CurrT], [ResH,ResT]):-
     ResH is CurrH - 1, ResT is CurrT, pos([ResH, ResT]),!.
@@ -150,9 +160,11 @@ passed_cells([FromH|FromT], [ToH|ToT], Cells):-
 
 % Удаляет из листа элемент, если он там есть
 remove_element([], _, []):-!.
-remove_element([WhereH|WhereT], Elem, [ResH|ResT]):-
-    not(WhereH = Elem), ResH = WhereH, remove_element(WhereT, Elem, ResT),!;
-    WhereH = Elem, remove_element(WhereT, Elem, [ResH|ResT]).
+remove_element([WhereH|WhereT], Elem, Res):-
+    %print(WhereH), nl(),
+    %print(Elem), nl(),
+    Res = [ResH|ResT], not(WhereH = Elem), ResH = WhereH, remove_element(WhereT, Elem, ResT),!;
+    WhereH = Elem, remove_element(WhereT, Elem, Res).
 
 % Удаляет из листа элементы другого листа, если они в нем есть
 remove_elements([], _, []):-!.
@@ -161,17 +173,34 @@ remove_elements(Where, [WhatH|WhatT], Res):-
     remove_elements(Where, WhatT, ResNew), remove_element(ResNew, WhatH, Res).
 
 
+% Заменяем в листе цифры на буквы и наоборот. Для красоты
+pairs([], []):-!.
+pairs([ListH|ListT], [ResH|ResT]):-
+    ListH = [ListHH|ListHT],
+    pair(ResHH, ListHH),
+    ResH = [ResHH|ListHT],
+    pairs(ListT, ResT),!.
+
 % Так, поехали
 % (текущая позиция, что надо посетить, оставшееся количество ходов, сами ходы)
-moves(_,[],N,[]):-
+moves_sub(_,[],N,[]):-
     N >= 0, !.
-moves(Pos, Points, N, [MovesH|MovesT]):-
+moves_sub(Pos, Points, N, [MovesH|MovesT]):-
     %print(N),
     N >= 0,
     possible_move(Pos, Move),
     passed_cells(Pos, Move, PassCells),
-    print(PassCells), nl(),
+    %print(Points), nl(),
+    %print(PassCells), nl(),
     remove_elements(Points, PassCells, PointsNew),
+    %print(PassCells), nl(),
     NNew is N - 1,
     MovesH = Move,
-    moves(Move, PointsNew, NNew, MovesT).
+    moves_sub(Move, PointsNew, NNew, MovesT).
+
+moves(Pos, Points, N, Moves):-
+    %print([Pos]),
+    pairs([PosNum], [Pos]),
+    pairs(PointsNum, Points),
+    moves_sub(PosNum, PointsNum, N, MovesNum),
+    pairs(MovesNum, Moves).
