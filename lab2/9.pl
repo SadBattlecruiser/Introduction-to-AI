@@ -139,12 +139,39 @@ diag_passed_cells([FromH|FromT], [ToH|ToT], [CellsH|CellsT]):-
     CellsH = [FromH|FromT], diag_passed_cells(NewFrom, [ToH|ToT], CellsT), !.
 
 % Клетки, которые пройдем, если сделаем ход
-%passed_cells([FromH|FromT], [ToH|ToT], Cells):-
-%    % По горизонтали
-%    FromH = ToH, not(FromT = ToT), Cells
+passed_cells([FromH|FromT], [ToH|ToT], Cells):-
+    % По вертикали
+    FromH = ToH, not(FromT = ToT), ver_passed_cells([FromH|FromT], [ToH|ToT], Cells),!;
+    % По горизонтали
+    FromT = [FromTH|_], ToT = [ToTH|_], FromTH = ToTH, not(FromH = ToH),
+    hor_passed_cells([FromH|FromT], [ToH|ToT], Cells),!;
+    % По диагонали
+    diag_passed_cells([FromH|FromT], [ToH|ToT], Cells).
+
+% Удаляет из листа элемент, если он там есть
+remove_element([], _, []):-!.
+remove_element([WhereH|WhereT], Elem, [ResH|ResT]):-
+    not(WhereH = Elem), ResH = WhereH, remove_element(WhereT, Elem, ResT),!;
+    WhereH = Elem, remove_element(WhereT, Elem, [ResH|ResT]).
+
+% Удаляет из листа элементы другого листа, если они в нем есть
+remove_elements([], _, []):-!.
+remove_elements(A, [], A):-!.
+remove_elements(Where, [WhatH|WhatT], Res):-
+    remove_elements(Where, WhatT, ResNew), remove_element(ResNew, WhatH, Res).
 
 
-%moves(_,[],0,[]):-!.
-
+% Так, поехали
 % (текущая позиция, что надо посетить, оставшееся количество ходов, сами ходы)
-%moves(Pos, Points, N, Moves)
+moves(_,[],N,[]):-
+    N >= 0, !.
+moves(Pos, Points, N, [MovesH|MovesT]):-
+    %print(N),
+    N >= 0,
+    possible_move(Pos, Move),
+    passed_cells(Pos, Move, PassCells),
+    print(PassCells), nl(),
+    remove_elements(Points, PassCells, PointsNew),
+    NNew is N - 1,
+    MovesH = Move,
+    moves(Move, PointsNew, NNew, MovesT).
