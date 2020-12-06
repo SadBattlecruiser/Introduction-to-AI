@@ -27,22 +27,22 @@ double perceptron::out(const std::vector<double>& input) const {
 unsigned perceptron::fit_one(const std::vector<std::vector<double> >& X_train,
                              const std::vector<bool>& y_train, size_t idx, unsigned max_iter) {
   unsigned count = 0;
-  double f_coeff = 0.2;
+  double f_coeff = 0.5;         // Коэффициент обучения
   double y_true = y_train[idx];
   while (count < max_iter) {
     double y_pred = this->out(X_train[idx]);
     if (y_true == y_pred) {
-      //std::cout << "y_true == y_pred" << std::endl;
       break;
     }
     // Отдельно поляризацию
     weights_[0] += f_coeff * (y_true - y_pred);
-    // weights_[1] += f_coeff * (y_true - y_pred) * X_train[idx][0];
-    // weights_[2] += f_coeff * (y_true - y_pred) * X_train[idx][1];
     // И остальное
     for (size_t i = 1; i < N_inputs_; i++) {
       weights_[i] += f_coeff * (y_true - y_pred) * X_train[idx][i - 1];
     }
+    std::cout <<"-----" << std::endl;
+    std::cout << weights_[0] << ' ' << weights_[1] << ' ' << weights_[2] << ' ' << std::endl;
+    std::cout <<"-----" << std::endl;
     count++;
   }
   return count;

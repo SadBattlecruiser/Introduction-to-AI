@@ -14,16 +14,17 @@ int main() {
   vector<vector<double> >& X_train = points.first;
   vector<bool>& y_train = points.second;
 
-  vector<double> weights0({0., 0., 0.});
+  vector<double> weights0({0, 0, 0});
   perceptron p(2, weights0);
 
+  cout << "================" << endl;
   cout << "weights0: " << endl;
   p.print_weights();
-  cout << "================" << endl;
 
   unsigned n_iters = p.fit(X_train, y_train, 1000);
   vector<bool> y_pred = p.predict(X_train);
 
+  cout << "================" << endl;
   cout << "weights after fit: " << endl;
   p.print_weights();
   cout << "================" << endl;
