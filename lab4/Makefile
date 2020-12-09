@@ -1,7 +1,7 @@
 CC = g++
-FLAGS = -lpng -lz -lm
-HEADERS = -I src\\cimg\\ -I src\\cimg\\plugins\\
+FLAGS = -std=gnu++11
+HEADERS = -I *.hpp -I src\\cimg\\ -I src\\cimg\\plugins\\ 
 LIBS = -L MinGW\lib -lgdi32
 
 all:
-	$(CC) $(HEADERS) $(LIBS) -o main.out src\\*.cpp
+	$(CC) $(FLAGS) $(HEADERS) -o main.out src\\*.cpp $(LIBS)

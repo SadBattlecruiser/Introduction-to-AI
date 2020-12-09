@@ -14,9 +14,13 @@ public:
   size_t get_m() const;
   void fill(const T value);
   void print() const;
-  const vector<T>& operator[](size_t idx_i) const;
-  T& ij(size_t idx_i, size_t idx_j);
+  vector<T>& operator[](size_t idx_i);
+  const T& ij(size_t idx_i, size_t idx_j) const;
   matrix<T>& operator*(const matrix<T>& r_matr) const;
+  matrix<T>& operator+(const matrix<T>& r_matr) const;
+  matrix<T>& operator-(const matrix<T>& r_matr) const;
+  matrix<T>& slice(size_t i_b, size_t i_e, size_t j_b, size_t j_e);
+  matrix<T>& reshape(size_t N_new, size_t M_new);
 private:
   size_t N_;
   size_t M_;
@@ -65,12 +69,12 @@ void matrix<T>::fill(const T value) {
 }
 
 template <typename T>
-const vector<T>& matrix<T>::operator[](size_t idx_N) const {
+vector<T>& matrix<T>::operator[](size_t idx_N) {
   return arr_[idx_N];
 }
 
 template <typename T>
-T& matrix<T>::ij(size_t idx_i, size_t idx_j) {
+const T& matrix<T>::ij(size_t idx_i, size_t idx_j) const {
   return arr_[idx_i][idx_j];
 }
 
@@ -82,8 +86,62 @@ matrix<T>& matrix<T>::operator*(const matrix<T>& r_matr) const {
   for (size_t i = 0; i < r_N; i++) {
     for (size_t j = 0; j < r_M; j++) {
       for (size_t k = 0; k < M_; k++) {
-        ret_matr.ij(i,j) += arr_[i][k] * r_matr[k][j];
+        ret_matr[i][j] += arr_[i][k] * r_matr.ij(k, j);
       }
+    }
+  }
+  return ret_matr;
+}
+
+template <typename T>
+matrix<T>& matrix<T>::operator+(const matrix<T>& r_matr) const {
+  matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
+  for (size_t i = 0; i < N_; i++) {
+    for (size_t j = 0; j < M_; j++) {
+      ret_matr[i][j] = arr_[i][j] + r_matr.ij(i, j);
+    }
+  }
+  return ret_matr;
+}
+
+template <typename T>
+matrix<T>& matrix<T>::operator-(const matrix<T>& r_matr) const {
+  matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
+  for (size_t i = 0; i < N_; i++) {
+    for (size_t j = 0; j < M_; j++) {
+      ret_matr[i][j] = arr_[i][j] - r_matr.ij(i, j);
+    }
+  }
+  return ret_matr;
+}
+
+template <typename T>
+matrix<T>& matrix<T>::slice(size_t i_b, size_t i_e, size_t j_b, size_t j_e) {
+  size_t r_N = i_e - i_b;
+  size_t r_M = j_e - j_b;
+  matrix<T>& ret_matr = *(new matrix<T>(r_N, r_M));
+  for (size_t i = 0; i < r_N; i++) {
+    for (size_t j = 0; j < r_M; j++) {
+      ret_matr[i][j] = arr_[i_b + i][j_b + j];
+    }
+  }
+  return ret_matr;
+}
+
+template <typename T>
+matrix<T>& matrix<T>::reshape(size_t N_new, size_t M_new) {
+  if (N_ * M_ != N_new * M_new) {
+    throw "BAD SIZES IN RESHAPE\n";
+  }
+  matrix<T>& ret_matr = *(new matrix<T>(N_new, M_new));
+  for (size_t i = 0; i < N_new; i++) {
+    for (size_t j = 0; j < M_new; j++) {
+      size_t idx = i * M_new + j;  // Одномерная координата
+      size_t i_old = idx / M_;
+      size_t j_old = idx % M_;
+      ret_matr[i][j] = arr_[i_old][j_old];
+      // std::cout << "i_" << i << " j_ " << j << std::endl;
+      // std::cout << "io" << i_old << " jo " << j_old << std::endl;
     }
   }
   return ret_matr;
