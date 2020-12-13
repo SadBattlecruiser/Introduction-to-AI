@@ -14,12 +14,12 @@ public:
   void fit(const std::vector< matrix<double> > X_train);
   // cimg_library::CImg<unsigned char>& out(const cimg_library::CImg<unsigned char>& in) const;
   // matrix<double>& back(const matrix<double>& in) const;
+    size_t size0_;
+    size_t size1_;
+    size_t size2_;
+    matrix<double> W1_;
+    matrix<double> W2_;
 private:
-  size_t size0_;
-  size_t size1_;
-  size_t size2_;
-  matrix<double> W1_;
-  matrix<double> W2_;
 };
 
 #endif

@@ -10,13 +10,11 @@ template <typename T>
 class matrix {
 public:
   matrix(size_t N, size_t M);
-  matrix(const matrix<T>& orig);
-  ~matrix();
   size_t get_n() const;
   size_t get_m() const;
   void fill(const T value);
   void print() const;
-  T* operator[](size_t idx_i);
+  vector<T>& operator[](size_t idx_i);
   const T& ij(size_t idx_i, size_t idx_j) const;
   matrix<T>& operator*(const matrix<T>& r_matr) const;
   matrix<T>& operator*(const T& val) const;
@@ -29,32 +27,22 @@ public:
 private:
   size_t N_;
   size_t M_;
-  T* arr_;
+  vector<vector<T> > arr_;
 };
 
 template <typename T>
 matrix<T>::matrix(size_t N, size_t M) {
-  // std::cout << "matrix constructor begin" << std::endl;
+  std::cout << "matrix constructor begin" << std::endl;
   N_ = N;
   M_ = M;
-  arr_ = new T[N_*M_];
-  // std::cout << "matrix constructor vv create" << std::endl;
-  // std::cout << "matrix constructor begin" << std::endl;
-}
-
-template <typename T>
-matrix<T>::matrix(const matrix<T>& orig) {
-  N_ = orig.N_;
-  M_ = orig.M_;
-  arr_ = new T[N_*M_];
-  for (size_t i = 0; i < N_ * M_; i++) {
-    arr_[i] = orig.arr_[i];
+  //arr_ = new vector<vector<T> >[N];
+  arr_ = vector<vector<T> >(N);
+  std::cout << "matrix constructor vv create" << std::endl;
+  for (size_t i = 0; i < N_; i++) {
+    std::cout << "i " << i << " M " << M << std::endl;
+    arr_[i].resize(M);
   }
-}
-
-template <typename T>
-matrix<T>::~matrix() {
-  delete[] arr_;
+  std::cout << "matrix constructor begin" << std::endl;
 }
 
 template <typename T>
@@ -72,7 +60,7 @@ void matrix<T>::print() const {
   cout << "shape: " << N_ << " " << M_ << endl;
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
-      cout << arr_[i * M_ + j] << ' ';
+      cout << arr_[i][j] << ' ';
     }
     cout << endl;
   }
@@ -82,19 +70,19 @@ template <typename T>
 void matrix<T>::fill(const T value) {
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
-      arr_[i * M_ + j] = value;
+      arr_[i][j] = value;
     }
   }
 }
 
 template <typename T>
-T* matrix<T>::operator[](size_t idx_N) {
-  return arr_ + idx_N * M_;
+vector<T>& matrix<T>::operator[](size_t idx_N) {
+  return arr_[idx_N];
 }
 
 template <typename T>
 const T& matrix<T>::ij(size_t idx_i, size_t idx_j) const {
-  return arr_[idx_i * M_ + idx_j];
+  return arr_[idx_i][idx_j];
 }
 
 template <typename T>
@@ -105,7 +93,7 @@ matrix<T>& matrix<T>::operator*(const matrix<T>& r_matr) const {
   for (size_t i = 0; i < r_N; i++) {
     for (size_t j = 0; j < r_M; j++) {
       for (size_t k = 0; k < M_; k++) {
-        ret_matr[i][j] += arr_[i * M_ + k] * r_matr.ij(k, j);
+        ret_matr[i][j] += arr_[i][k] * r_matr.ij(k, j);
       }
     }
   }
@@ -117,7 +105,7 @@ matrix<T>& matrix<T>::operator*(const T& val) const {
   matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
-      ret_matr[i][j] = arr_[i * M_ + j] * val;
+      ret_matr[i][j] = arr_[i][j] * val;
     }
   }
   return ret_matr;
@@ -128,7 +116,7 @@ matrix<T>& matrix<T>::operator+(const matrix<T>& r_matr) const {
   matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
-      ret_matr[i][j] = arr_[i * M_ + j] + r_matr.ij(i, j);
+      ret_matr[i][j] = arr_[i][j] + r_matr.ij(i, j);
     }
   }
   return ret_matr;
@@ -139,7 +127,7 @@ matrix<T>& matrix<T>::operator-(const matrix<T>& r_matr) const {
   matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
-      ret_matr[i][j] = arr_[i * M_ + j] - r_matr.ij(i, j);
+      ret_matr[i][j] = arr_[i][j] - r_matr.ij(i, j);
     }
   }
   return ret_matr;
@@ -149,7 +137,7 @@ template <typename T>
 matrix<T>& matrix<T>::operator+=(const matrix<T>& r_matr) {
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
-      arr_[i * M_ + j] += r_matr.ij(i, j);
+      arr_[i][j] += r_matr.ij(i, j);
     }
   }
   return *this;
@@ -176,8 +164,12 @@ matrix<T>& matrix<T>::reshape(size_t N_new, size_t M_new) {
   matrix<T>& ret_matr = *(new matrix<T>(N_new, M_new));
   for (size_t i = 0; i < N_new; i++) {
     for (size_t j = 0; j < M_new; j++) {
-      //std::cout << i << ' ' << j << ' ' << arr_[i * M_new + j] << std::endl;
-      ret_matr[i][j] = arr_[i * M_new + j];
+      size_t idx = i * M_new + j;  // Одномерная координата
+      size_t i_old = idx / M_;
+      size_t j_old = idx % M_;
+      ret_matr[i][j] = arr_[i_old][j_old];
+      // std::cout << "i_" << i << " j_ " << j << std::endl;
+      // std::cout << "io" << i_old << " jo " << j_old << std::endl;
     }
   }
   return ret_matr;
@@ -186,9 +178,9 @@ matrix<T>& matrix<T>::reshape(size_t N_new, size_t M_new) {
 template <typename T>
 matrix<T>& matrix<T>::transpose() {
   matrix<T>& ret_matr = *(new matrix<T>(M_, N_));
-  for (size_t i = 0; i < N_; i++) {
-    for (size_t j = 0; j < M_; j++) {
-      ret_matr[j][i] = arr_[i * M_ + j];
+  for (size_t i = 0; i < M_; i++) {
+    for (size_t j = 0; j < N_; j++) {
+      ret_matr[i][j] = arr_[j][i];
     }
   }
   return ret_matr;
