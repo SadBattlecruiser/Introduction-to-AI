@@ -16,101 +16,59 @@
 using namespace cimg_library;
 
 std::vector<CImg<unsigned char> >& load_images(const char* dir, unsigned num);
-
 matrix<double>& img_to_matrix(CImg<unsigned char>& img, size_t size=256);
 CImg<unsigned char>& matrix_to_img(matrix<double>& matrix, size_t size=256);
 
-vector<matrix<double> >& images_to_matrix(std::vector<CImg<unsigned char> >& images, size_t size=256);
+vector<matrix<double> >& images_to_matrices(vector<CImg<unsigned char> >& images, size_t side=256);
+vector<vector<matrix<double> > >& matrices_to_cell_vecs(vector<matrix<double> >& matrices,
+                                                        size_t cell=32, size_t side=256);
+
+vector<matrix<double> >& cell_vecs_to_matrices(vector<vector<matrix<double> > >& cell_vecs,
+                                               size_t cell=32, size_t side=256);
+vector<CImg<unsigned char> >& matrices_to_images(vector<matrix<double> >& matrices, size_t side=256);
 
 int main() {
-  // matrix<double> A(3,3);
-  // matrix<double> B(3,3);
-  // for (int i = 0; i < 3; i++) {
-  //   for (int j = 0; j < 3; j++) {
-  //     A[i][j] = 10*i + j;
-  //     B[i][j] = 3*j + 2*i;
-  //   }
-  // }
-  // A.print();
-  // B.print();
-  // (A*B).print();
-  // matrix<double> D(3,2);
-  // D.fill(4.);
-  // D[0][0] = 1;
-  // D[1][0] = 2;
-  // D[2][0] = 3;
-  // matrix<double> E = D.transpose();
-  // E.print();
-  // E.transpose().print();
-  // (A+B).print();
-  // (A+=B).print();
-  // (A*2).print();
-  // (A.reshape(9,1)).print();
+  size_t SIDE = 256;
+  size_t CELL = 2;
 
-  // CImg<unsigned char> img(640,400,1,3);
-  // img.fill(0);
-  // CImg<unsigned char> img(256,256);
-
+  // Загружаем изображения с диска
   auto img_vec = load_images("img\\", 2);
   std::cout << "load_images done" << std::endl;
-  auto img_m_vec = images_to_matrix(img_vec);
+  // Превращаем изображения в матрицы
+  auto img_m_vec = images_to_matrices(img_vec, SIDE);
   std::cout << "images_to_matrix done" << std::endl;
-  // Переразбиваем матрицы в одномерные вектора
-  vector<matrix<double> > img_rm_vec;
-  for (auto img : img_m_vec) {
-    auto temp = img.reshape(256*256, 1);
-    // std::cout << img.get_n() << std::endl;
-    // std::cout << img.get_m() << std::endl;
-    img_rm_vec.push_back(temp);
-  }
+  // Переразбиваем каждую матрицу в несколько одномерных векторов
+  auto img_cv_vec = matrices_to_cell_vecs(img_m_vec, CELL, SIDE);
   std::cout << "reshape done" << std::endl;
   // Сама сеть
-  network n(256*256, 256*256, 256*256);
-  //network n(32*32, 32*32, 32*32);
+  //network n(SIDE*SIDE, SIDE*SIDE, SIDE*SIDE);
+  //network n(CELL*CELL, CELL/2*CELL/2, CELL*CELL);
+  //network n(CELL*CELL, CELL/2*CELL/2, CELL*CELL);
+  network n(CELL*CELL, CELL*CELL, CELL*CELL);
   std::cout << "network create" << std::endl;
   std::cout << "W1.n: " << n.W1_.get_n() << std::endl;
   std::cout << "W1.m: " << n.W1_.get_m() << std::endl;
   std::cout << "W2.n: " << n.W2_.get_n() << std::endl;
   std::cout << "W2.m: " << n.W2_.get_m() << std::endl;
-  // Обучаемся
-  n.W1_.fill(0.);
-  n.W2_.fill(0.);
-  for (size_t i = 0; i < 256*256; i++) {
-    n.W1_[i][i] = 1.;
-    n.W2_[i][i] = 1.;
-  }
-  //n.fit(img_rm_vec);
+  // Обучаемся по первой картинке
+  n.fit(img_cv_vec[0]);
   std::cout << "fit done" << std::endl;
+  // Прогоняем всё через сеть
+  auto img_cv_vec_out = n.out(img_cv_vec);
+  std::cout << "n.out() done" << std::endl;
+  // Одномерные вектора обратно в матрицы
+  auto img_m_vec_out = cell_vecs_to_matrices(img_cv_vec_out, CELL, SIDE);
+  std::cout << "reshape2 done" << std::endl;
+  // Конвертим обратно в изображения
+  auto img_vec_out = matrices_to_images(img_m_vec_out, SIDE);
   // Смотрим пробную картинку
-  matrix<double> test_rm = n.out(img_rm_vec[0]);
-  matrix<double> test_m = test_rm.reshape(256, 256);
-  // test_m.print();
-  auto test = matrix_to_img(test_m);
+  auto test = img_vec_out[0];
   test.display("2");
-
-
-  // network n(16, 16, 16);
-  // n.W1_.fill(0.);
-  // n.W2_.fill(0.);
-  // for (size_t i = 0; i < 16; i++) {
-  //   n.W1_[i][i] = 1.;
-  //   n.W2_[i][i] = 1.;
-  // }
-  // std::cout << "network create" << std::endl;
-  // std::cout << "W1.n: " << n.W1_.get_n() << std::endl;
-  // std::cout << "W1.m: " << n.W1_.get_m() << std::endl;
-  // std::cout << "W2.n: " << n.W2_.get_n() << std::endl;
-  // std::cout << "W2.m: " << n.W2_.get_m() << std::endl;
-  // // Тест
-  // matrix<double> testvec(16, 1);
-  // for (int i = 0; i < 16; i++) {
-  //   testvec[i][0] = i;
-  // }
-  // n.out(testvec).print();
-
 
   return 0;
 }
+
+
 
 std::vector<CImg<unsigned char> >& load_images(const char* dir, unsigned num) {
   std::string str(dir);
@@ -144,13 +102,70 @@ CImg<unsigned char>& matrix_to_img(matrix<double>& matrix, size_t size) {
   return ret;
 }
 
-vector<matrix<double> >& images_to_matrix(std::vector<CImg<unsigned char> >& images, size_t size) {
+vector<matrix<double> >& images_to_matrices(std::vector<CImg<unsigned char> >& images, size_t side) {
   vector<matrix<double> >& ret_vec = *(new vector<matrix<double> >);
   for (auto img : images) {
     // auto temp = img_to_matrix(img, size);
     // temp.print();
-    ret_vec.push_back(img_to_matrix(img, size));
+    ret_vec.push_back(img_to_matrix(img, side));
   }
   // ret_vec[0].print();
   return ret_vec;
+}
+
+vector<vector<matrix<double> > >& matrices_to_cell_vecs(vector<matrix<double> >& matrices,
+                                                    size_t cell, size_t side) {
+  vector<vector<matrix<double> > >& ret_vec = *(new vector<vector<matrix<double> > >);
+  for (auto matr_i : matrices) {
+    vector<matrix<double> > cells_i;
+    for (size_t i = 0; i < side / cell; i++) {
+      for (size_t j = 0; j < side / cell; j++) {
+        size_t slice_n_beg = cell * i;
+        size_t slice_n_end = cell * (i + 1);
+        size_t slice_m_beg = cell * j;
+        size_t slice_m_end = cell * (j + 1);
+        matrix<double>& cell_i = matr_i.slice(slice_n_beg, slice_n_end,
+                                            slice_m_beg, slice_m_end);
+        matrix<double>& cell_vec = cell_i.reshape(cell*cell, 1);
+        cells_i.push_back(cell_vec);
+        delete &cell;
+        delete &cell_vec;
+      }
+    }
+    ret_vec.push_back(cells_i);
+  }
+  return ret_vec;
+}
+
+vector<matrix<double> >& cell_vecs_to_matrices(vector<vector<matrix<double> > >& cell_vecs,
+                                               size_t cell, size_t side) {
+  vector<matrix<double> >& ret_matrices = *(new vector<matrix<double> >);
+  for (auto cell_vecs_i : cell_vecs) {
+    matrix<double> matr_i(side, side);
+    for (size_t i = 0; i < side / cell; i++) {
+      for (size_t j = 0; j < side / cell; j++) {
+        size_t slice_n_beg = cell * i;
+        size_t slice_m_beg = cell * j;
+        matrix<double>& cell_i = cell_vecs_i[i * side / cell + j].reshape(cell, cell);
+        for (size_t k = 0; k < cell; k++) {
+          for (size_t l = 0; l < cell; l++) {
+            matr_i[slice_n_beg + k][slice_m_beg + l] = cell_i[k][l];
+          }
+        }
+        delete &cell_i;
+      }
+    }
+    ret_matrices.push_back(matr_i);
+  }
+  return ret_matrices;
+}
+
+vector<CImg<unsigned char> >& matrices_to_images(vector<matrix<double> >& matrices, size_t side) {
+  vector<CImg<unsigned char> >& ret_images = *(new vector<CImg<unsigned char> >);
+  for (auto matr_i : matrices) {
+    CImg<unsigned char>& img_i = matrix_to_img(matr_i);
+    ret_images.push_back(img_i);
+    delete &img_i;
+  }
+  return ret_images;
 }

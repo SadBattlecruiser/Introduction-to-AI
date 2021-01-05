@@ -23,9 +23,9 @@ public:
   matrix<T>& operator+(const matrix<T>& r_matr) const;
   matrix<T>& operator-(const matrix<T>& r_matr) const;
   matrix<T>& operator+=(const matrix<T>& r_matr);
-  matrix<T>& slice(size_t i_b, size_t i_e, size_t j_b, size_t j_e);
-  matrix<T>& reshape(size_t N_new, size_t M_new);
-  matrix<T>& transpose();
+  matrix<T>& slice(size_t i_b, size_t i_e, size_t j_b, size_t j_e) const;
+  matrix<T>& reshape(size_t N_new, size_t M_new) const;
+  matrix<T>& transpose() const;
 private:
   size_t N_;
   size_t M_;
@@ -82,6 +82,7 @@ template <typename T>
 void matrix<T>::fill(const T value) {
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
+      //std::cout << i * M_ + j << std::endl;
       arr_[i * M_ + j] = value;
     }
   }
@@ -99,9 +100,14 @@ const T& matrix<T>::ij(size_t idx_i, size_t idx_j) const {
 
 template <typename T>
 matrix<T>& matrix<T>::operator*(const matrix<T>& r_matr) const {
+  if (M_ != r_matr.get_n()) {
+    std::cout << "BAD SIZES IN operator*\n";
+    throw "BAD SIZES IN operator*\n";
+  }
   size_t r_N = N_;
   size_t r_M = r_matr.get_m();
   matrix<T>& ret_matr = *(new matrix<T>(r_N, r_M));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < r_N; i++) {
     for (size_t j = 0; j < r_M; j++) {
       for (size_t k = 0; k < M_; k++) {
@@ -115,6 +121,7 @@ matrix<T>& matrix<T>::operator*(const matrix<T>& r_matr) const {
 template <typename T>
 matrix<T>& matrix<T>::operator*(const T& val) const {
   matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
       ret_matr[i][j] = arr_[i * M_ + j] * val;
@@ -125,7 +132,12 @@ matrix<T>& matrix<T>::operator*(const T& val) const {
 
 template <typename T>
 matrix<T>& matrix<T>::operator+(const matrix<T>& r_matr) const {
+  if (N_ != r_matr.get_n() || M_ != r_matr.get_m()) {
+    std::cout << "BAD SIZES IN operator+\n";
+    throw "BAD SIZES IN operator+\n";
+  }
   matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
       ret_matr[i][j] = arr_[i * M_ + j] + r_matr.ij(i, j);
@@ -136,7 +148,12 @@ matrix<T>& matrix<T>::operator+(const matrix<T>& r_matr) const {
 
 template <typename T>
 matrix<T>& matrix<T>::operator-(const matrix<T>& r_matr) const {
+  if (N_ != r_matr.get_n() || M_ != r_matr.get_m()) {
+    std::cout << "BAD SIZES IN operator-\n";
+    throw "BAD SIZES IN operator-\n";
+  }
   matrix<T>& ret_matr = *(new matrix<T>(N_, M_));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
       ret_matr[i][j] = arr_[i * M_ + j] - r_matr.ij(i, j);
@@ -147,6 +164,10 @@ matrix<T>& matrix<T>::operator-(const matrix<T>& r_matr) const {
 
 template <typename T>
 matrix<T>& matrix<T>::operator+=(const matrix<T>& r_matr) {
+  if (N_ != r_matr.get_n() || M_ != r_matr.get_m()) {
+    std::cout << "BAD SIZES IN operator+=\n";
+    throw "BAD SIZES IN operator+=\n";
+  }
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
       arr_[i * M_ + j] += r_matr.ij(i, j);
@@ -156,24 +177,27 @@ matrix<T>& matrix<T>::operator+=(const matrix<T>& r_matr) {
 }
 
 template <typename T>
-matrix<T>& matrix<T>::slice(size_t i_b, size_t i_e, size_t j_b, size_t j_e) {
-  size_t r_N = i_e - i_b;
-  size_t r_M = j_e - j_b;
+matrix<T>& matrix<T>::slice(size_t n_b, size_t n_e, size_t m_b, size_t m_e) const {
+  size_t r_N = n_e - n_b;
+  size_t r_M = m_e - m_b;
   matrix<T>& ret_matr = *(new matrix<T>(r_N, r_M));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < r_N; i++) {
     for (size_t j = 0; j < r_M; j++) {
-      ret_matr[i][j] = arr_[i_b + i][j_b + j];
+      ret_matr[i][j] = arr_[(n_b + i)*M_ + (m_b + j)];
     }
   }
   return ret_matr;
 }
 
 template <typename T>
-matrix<T>& matrix<T>::reshape(size_t N_new, size_t M_new) {
+matrix<T>& matrix<T>::reshape(size_t N_new, size_t M_new) const{
   if (N_ * M_ != N_new * M_new) {
-    throw "BAD SIZES IN RESHAPE\n";
+    std::cout << "BAD SIZES IN reshape\n";
+    throw "BAD SIZES IN reshape\n";
   }
   matrix<T>& ret_matr = *(new matrix<T>(N_new, M_new));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < N_new; i++) {
     for (size_t j = 0; j < M_new; j++) {
       //std::cout << i << ' ' << j << ' ' << arr_[i * M_new + j] << std::endl;
@@ -184,8 +208,9 @@ matrix<T>& matrix<T>::reshape(size_t N_new, size_t M_new) {
 }
 
 template <typename T>
-matrix<T>& matrix<T>::transpose() {
+matrix<T>& matrix<T>::transpose() const{
   matrix<T>& ret_matr = *(new matrix<T>(M_, N_));
+  ret_matr.fill(0.);
   for (size_t i = 0; i < N_; i++) {
     for (size_t j = 0; j < M_; j++) {
       ret_matr[j][i] = arr_[i * M_ + j];
