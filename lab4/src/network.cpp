@@ -61,8 +61,6 @@ vector<vector<matrix<double> > >& network::out(const vector<vector<matrix<double
 void network::fit(const vector< matrix<double>> orig) {
   // Количество проходов
   for (int k = 0; k < 5; k++) {
-    // matrix<double> errors2(orig[0].get_n(), 1);
-    // errors2.fill(0.);
     // Проходимся по всем кусочкам и суммируем ошибку
     int counter = 0;
     for (auto input : orig) {
@@ -76,7 +74,7 @@ void network::fit(const vector< matrix<double>> orig) {
       matrix<double>& W2_transp = W2_.transpose();
       matrix<double>& errors1 = W2_transp * errors2;
       // Корректируем веса
-      double l_c = 3.5;   // Коэффициент обучения
+      double l_c = 1;   // Коэффициент обучения
       // Второй слой
       for (size_t i = 0; i < W2_.get_n(); i++) {
         for (size_t l = 0; l < W2_.get_m(); l++) {
@@ -89,23 +87,23 @@ void network::fit(const vector< matrix<double>> orig) {
       //     W1_[l][j] += (l_c*0.001) * errors1[l][0] * input.ij(j, 0);
       //   }
       // }
-      if (counter == 0) {
-        std::cout << "iteration: " << counter << std::endl;
-        std::cout << "W1_.n " << W1_.get_n() << " W1_._m " << W1_.get_m() << std::endl;
-        std::cout << "errors1.n " << errors1.get_n() << " errors1._m " << errors1.get_m() << std::endl;
-        std::cout << "input.n " << input.get_n() << " input._m " << input.get_m() << std::endl;
-        std::cout << "errors2.n " << errors2.get_n() << " errors2._m " << errors2.get_m() << std::endl;
-        cout << "  mean square error2: " << sum(pow2(errors2))/errors2.get_n() << endl;
-        cout << "  mean square error1: " << sum(pow2(errors1))/errors1.get_n() << endl;
-        std::cout << "=============" << std::endl;
-      }
+
+      // if (counter == 0) {
+      //   std::cout << "iteration: " << counter << std::endl;
+      //   std::cout << "W1_.n " << W1_.get_n() << " W1_._m " << W1_.get_m() << std::endl;
+      //   std::cout << "errors1.n " << errors1.get_n() << " errors1._m " << errors1.get_m() << std::endl;
+      //   std::cout << "input.n " << input.get_n() << " input._m " << input.get_m() << std::endl;
+      //   std::cout << "errors2.n " << errors2.get_n() << " errors2._m " << errors2.get_m() << std::endl;
+      //   cout << "  mean square error2: " << sum(pow2(errors2))/errors2.get_n() << endl;
+      //   cout << "  mean square error1: " << sum(pow2(errors1))/errors1.get_n() << endl;
+      //   std::cout << "=============" << std::endl;
+      // }
 
       delete &out1_temp;
       delete &out2_temp;
       delete &W2_transp;
       delete &errors1;
       delete &errors2;
-
       counter++;
     }
   }

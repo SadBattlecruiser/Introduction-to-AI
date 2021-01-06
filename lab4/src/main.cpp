@@ -29,10 +29,9 @@ vector<CImg<unsigned char> >& matrices_to_images(vector<matrix<double> >& matric
 
 int main() {
   size_t SIDE = 256;
-  size_t CELL = 2;
-
+  size_t CELL = 4;
   // Загружаем изображения с диска
-  auto img_vec = load_images("img\\", 2);
+  auto img_vec = load_images("src\\img\\", 3);
   std::cout << "load_images done" << std::endl;
   // Превращаем изображения в матрицы
   auto img_m_vec = images_to_matrices(img_vec, SIDE);
@@ -41,10 +40,7 @@ int main() {
   auto img_cv_vec = matrices_to_cell_vecs(img_m_vec, CELL, SIDE);
   std::cout << "reshape done" << std::endl;
   // Сама сеть
-  //network n(SIDE*SIDE, SIDE*SIDE, SIDE*SIDE);
-  //network n(CELL*CELL, CELL/2*CELL/2, CELL*CELL);
-  //network n(CELL*CELL, CELL/2*CELL/2, CELL*CELL);
-  network n(CELL*CELL, CELL*CELL, CELL*CELL);
+  network n(CELL*CELL, CELL/2*CELL/2, CELL*CELL);
   std::cout << "network create" << std::endl;
   std::cout << "W1.n: " << n.W1_.get_n() << std::endl;
   std::cout << "W1.m: " << n.W1_.get_m() << std::endl;
@@ -64,7 +60,6 @@ int main() {
   // Смотрим пробную картинку
   auto test = img_vec_out[0];
   test.display("2");
-
   return 0;
 }
 
