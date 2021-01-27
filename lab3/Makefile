@@ -1,11 +1,15 @@
 CC=g++
 FLAGS= -c -std=c++11
-HEADERS= -I .\src\*.hpp
+HEADERS= -I ./*.hpp
+SRC= .
 
-all: main_out
+all: main_out clear
 main_out: main_o perceptron_o
-	$(CC) .\\bin\\main.o .\\bin\\perceptron.o -o .\\bin\\main.out
+	$(CC) ./main.o ./perceptron.o -o ./main.out
 main_o:
-	$(CC) $(FLAGS) $(HEADERS) .\\src\\main.cpp -o .\\bin\\main.o
+	$(CC) $(FLAGS) $(HEADERS) $(SRC)/main.cpp -o ./main.o
 perceptron_o:
-	$(CC) $(FLAGS) $(HEADERS) .\\src\\perceptron.cpp -o .\\bin\\perceptron.o
+	$(CC) $(FLAGS) $(HEADERS) $(SRC)/perceptron.cpp -o ./perceptron.o
+
+clear:
+	rm ./*.o
